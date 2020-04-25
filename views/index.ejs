@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+
+    <script defer src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script defer src="/js/game.js"></script>
+
+    <style>
+        @import url('/css/style.css');
+    </style>
+</head>
+<body>
+    <h3 class="games-title">Games:</h3>
+    <div id="game-container">
+        <% Object.keys(games).forEach(game => { %>
+            <div>
+                <h4><%= game %></h4>
+            </div>
+            <a href="/<%= game %>">Join</a>
+        <% }) %>
+    </div>
+    <form action="/game" method="POST">
+        <input type="text" name="game" required>
+        <button type="submit" class="button">New game</button>
+    </form>
+</body>
+</html>
