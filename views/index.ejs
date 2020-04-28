@@ -13,18 +13,20 @@
     </style>
 </head>
 <body>
+        <input type="text" name="inputName" id="inputName">
+        <button type="submit" id="nameInputSubmit">Enter</button>
     <h3 class="games-title">Games:</h3>
     <div id="game-container">
         <% Object.keys(games).forEach(game => { %>
             <div>
                 <h4><%= game %></h4>
             </div>
-            <a href="/<%= game %>">Join</a>
+            <a href="/<%= game %>" id="joinGameLink">Join</a>
         <% }) %>
     </div>
     <form action="/game" method="POST">
-        <input type="text" name="game" required>
-        <button type="submit" class="button">New game</button>
+        <input type="text" name="game" id="inputGameName" required>
+        <button type="submit" id="submitNewGame" class="button">New game</button>
     </form>
 </body>
 </html>

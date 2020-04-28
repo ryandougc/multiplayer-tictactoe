@@ -4,8 +4,9 @@
   "description": "",
   "main": "script.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "devStart": "nodemon server.js"
+    "devStart": "nodemon server.js",
+    "test": "jest --detectOpenHandles",
+    "test-watch": "jest --watch"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,8 @@
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.3"
+    "jest": "^25.4.0",
+    "nodemon": "^2.0.3",
+    "puppeteer": "^3.0.1"
   }
 }

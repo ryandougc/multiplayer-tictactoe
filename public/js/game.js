@@ -11,17 +11,29 @@ const WINNING_COMBINATIONS = [
     [0, 4, 8],
     [2, 4, 6]
 ]
+let currentTurn
+let userShape
+let name = getCookie('name')
+
+const nameInput = document.getElementById('inputName')
+const nameInputSubmit = document.getElementById('nameInputSubmit')
 const gameContainer = document.getElementById('game-container')
 const board = document.getElementById('board')
 const cellElements = document.querySelectorAll('[data-cell]')
 const winningMessageElement = document.getElementById('winningMessage')
 const winningMessageTextElement = document.querySelector('[data-winning-message-text]')
 const restartButton = document.getElementById('restartButton')
-let circleTurn
+const turnMessage = document.getElementById('turnMessage')
+
+if (nameInput != null) {
+    nameInputSubmit.addEventListener('click', () => {
+        name = nameInput.value
+        document.cookie = `name=${nameInput.value}`
+    })
+}
 
 //User joins game
 if (board != null) {
-    const name = prompt('What is your name?')
     socket.emit('new-user', gameName, name)
 }
 
@@ -31,66 +43,112 @@ socket.on('game-created', game => {
     const gameLink = document.createElement('a')
     gameLink.href = `/${game}`
     gameLink.innerText = 'join'
-    gameContainer.append(gameElement)
-    gameContainer.append(gameLink)
+    // gameContainer.append(gameElement)
+    // gameContainer.append(gameLink)
 })
 
 socket.on('user-connected', user => {
     console.log(user)
+    userShape = user.role
 })
 
-socket.on('start-game', game => {
-    startGame(game)
+socket.on('other-user-connected', user => {
+    console.log(`${user.name} has joined!`)
 })
 
-socket.on('init-game', () => {
+socket.on('start-game', data => {
+    currentTurn = data.turn
+    // socket.emit('init-game', data.gameName)
+    startGame(data.gameName)
     console.log('game started')
+    swapTurns()
+})
+
+// socket.on('init-game', () => {
+//     console.log('game started')
+
+// })
+
+socket.on('place-mark', data => {
+    let cell = document.getElementById(data.cell)
+    placeMark(cell, data.currentTurn)
+})
+
+socket.on('not-turn', () => {
+    cellElements.forEach(cell => {
+        cell.removeEventListener('click', handleClick)
+        cell.classList.add('none')
+    })
+    turnMessage.innerText = ""
+})
+
+socket.on('turn', () => {
+    cellElements.forEach(cell => {
+        cell.removeEventListener('click', handleClick)
+        cell.addEventListener('click', handleClick, {once: true})
+        cell.classList.remove('none')
+    })
+    turnMessage.innerText = "It's Your Turn!"
+})
+
+socket.on('win', shape => {
+    winningMessageTextElement.innerText = `${shape}'s Win!`
+    winningMessageElement.classList.add('show')
+})
+
+socket.on('request-restart', () => {
+    console.log('Other player wants to play again')
+})
+
+socket.on('user-reconnected', data => {
+    startGame(data.gameName)
+    data.tiles.forEach( tile => {
+        if (tile.checked) {
+            document.getElementById(tile.id).classList.add(tile.shape)
+        } 
+    })
+})
+
+socket.on('other-user-reconnected', data => {
+    console.log(`${data.user.name} has reconnected`)
 })
 
 socket.on('user-disconnected', user => {
     console.log(`${user.name} has left!`)
 })
 
-
-restartButton.addEventListener('click', startGame)
-
-function startGame(game) {
-    socket.emit('init-game', game)
-
-    circleTurn = false;
+function startGame(gameName) {
+    winningMessageElement.classList.remove('show')
     cellElements.forEach(cell => {
         cell.classList.remove(X_CLASS)
         cell.classList.remove(CIRCLE_CLASS)
-        cell.removeEventListener('click', handleClick)
-        cell.addEventListener('click', handleClick, {once: true})
     })
-    setBoardHoverClass()
-    winningMessageElement.classList.remove('show')
+    board.classList.add(userShape)
 }
 
 function handleClick(e) {
     const cell = e.target
-    const currentClass = circleTurn ? CIRCLE_CLASS : X_CLASS
+    const currentTurn = userShape
     
-    placeMark(cell, currentClass)
-
-    if (checkWin(currentClass)) {
-        endGame(false)
-    } else if (isDraw()) {
-        endGame(true)
-    } else {
-        swapTurns()
-        setBoardHoverClass()
-    }
+    socket.emit('place-mark', { game: gameName, cell: cell.id, currentTurn: currentTurn })
+    placeMark(cell, currentTurn)
 }
 
-function endGame(draw) {
-    if (draw) {
-        winningMessageTextElement.innerText = 'Draw!'
+function swapTurns() {
+    if(userShape !== currentTurn) {
+        cellElements.forEach(cell => {
+            cell.removeEventListener('click', handleClick)
+            cell.classList.add('none')
+        })
+        turnMessage.innerText = ""
     } else {
-        winningMessageTextElement.innerText = `${circleTurn ? "O's" : "X's"} Win!`
+        cellElements.forEach(cell => {
+            cell.removeEventListener('click', handleClick)
+            cell.addEventListener('click', handleClick, {once: true})
+            cell.classList.remove('none')
+        })
+        turnMessage.innerText = "It's Your Turn!"
     }
-    winningMessageElement.classList.add('show')
 }
 
 function isDraw() {
@@ -103,24 +161,23 @@ function placeMark(cell, currentClass){
     cell.classList.add(currentClass)
 }
 
-function swapTurns() {
-    circleTurn = !circleTurn
-}
+// function swapTurns() {
+//     circleTurn = !circleTurn
+// }
 
-function setBoardHoverClass() {
-    board.classList.remove(X_CLASS)
-    board.classList.remove(CIRCLE_CLASS)
-    if (circleTurn) {
-        board.classList.add(CIRCLE_CLASS)
-    } else {
-        board.classList.add(X_CLASS)
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+        }
     }
-}
-
-function checkWin(currentClass) {
-    return WINNING_COMBINATIONS.some(combination => {
-        return combination.every(index => {
-            return cellElements[index].classList.contains(currentClass)
-        })
-    })
+    return "";
 }
