@@ -3,7 +3,6 @@ const puppeteer = require('puppeteer')
 test('connect-user', async () => {
     const browser = await puppeteer.launch({
         headless: false
-        ,slowMo: 90
         ,args: ['--window-size=1280,720', '--auto-open-devtools-for-tabs']
     })
         const page = await browser.newPage()
@@ -13,6 +12,7 @@ test('connect-user', async () => {
         await page.click('input#inputGameName')
         await page.type('input#inputGameName', 'test-game')
         await page.click('button#submitNewGame')
+        
         await page.on('dialog', async dialog => {
             await dialog.accept(`puppet`)
         })

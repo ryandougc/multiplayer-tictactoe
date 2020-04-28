@@ -25,15 +25,9 @@ const winningMessageTextElement = document.querySelector('[data-winning-message-
 const restartButton = document.getElementById('restartButton')
 const turnMessage = document.getElementById('turnMessage')
 
-if (nameInput != null) {
-    nameInputSubmit.addEventListener('click', () => {
-        name = nameInput.value
-        document.cookie = `name=${nameInput.value}`
-    })
-}
-
 //User joins game
 if (board != null) {
+    name = prompt('What is your name?')
     socket.emit('new-user', gameName, name)
 }
 
