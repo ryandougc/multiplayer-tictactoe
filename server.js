@@ -3,19 +3,14 @@ const app           = express()
 const server        = require('http').Server(app)
 const io            = require('socket.io')(server)
 
+const { 
+    setUserRole,
+    initGame,
+    swapTurns,
+    checkWin,
+    getUserGames
+}                   = require('./serverLogic')
 const games         = {}
-const WINNING_COMBINATIONS = [
-    ['0', '1', '2'],
-    ['3', '4', '5'],
-    ['6', '7', '8'],
-    ['0', '3', '6'],
-    ['1', '4', '7'],
-    ['2', '5', '8'],
-    ['0', '4', '8'],
-    ['2', '4', '6']
-]
-let userDisconnect  = ""
-
 
 app.set('views', './views')
 app.set('view engine', 'ejs')
@@ -43,11 +38,10 @@ app.post('/game', (req, res) => {
                 taken: false,
                 turn: false
             }
-        }, tiles: []
+        }, tiles: {}
     }
     res.redirect(req.body.game)
     
-    //Send message that new game was created
     io.emit('game-created', req.body.game)
 })
 
@@ -61,156 +55,94 @@ app.get('/:game', (req, res) => {
 server.listen(3000)
 
 io.on('connection', socket => {
-    socket.on('new-user', (game, name) => {
-        if( game == userDisconnect.game && name == userDisconnect.user.name ){
-            delete games[game].users[userDisconnect.user.id]
-            games[game].users[socket.id] = {
-                name: name
-                ,role: userDisconnect.user.role
-            }
+    socket.on('new-user', (gameName, userName) => {
+        //Add a new user into a game
+        socket.join(gameName)
 
-            clearTimeout(userDisconnect.timeout)
-            userDisconnect = ""
-            socket.emit('user-reconnected', { tiles: games[game].tiles, gameName: game })
-            io.sockets.to(game).emit('other-user-reconnected', { tiles: games[game].tiles, user: games[game].users[socket.id] })
-        }else {
-            socket.join(game)
-            games[game].users[socket.id] = { name: name }
+        //Set the users role
+        let userRole = setUserRole(games[gameName], socket.id)
+        games[gameName].roles[userRole].taken = true
+        games[gameName].users[socket.id] = { 
+            name: userName,
+            role: userRole,
+            restart: false
+        }
 
-            //Set circle or X for user
-            if (games[game].roles['circle'].taken && !games[game].roles['x'].taken) {
-                games[game].roles['x'].taken = true
-                games[game].users[socket.id].role = 'x'
-            } else if (!games[game].roles['circle'].taken && games[game].roles['x'].taken) {
-                games[game].roles['circle'].taken = true
-                games[game].users[socket.id].role = 'circle'
-            } else if (!games[game].roles['circle'].taken && !games[game].roles['x'].taken) {
-                games[game].roles['circle'].taken = true
-                games[game].users[socket.id].role = 'circle'
-            } else {
-                games[game].users[socket.id].role = 'spec'
-            }
+        socket.emit('user-connected', games[gameName].users[socket.id])
+        socket.broadcast.to(gameName).emit('other-user-connected', games[gameName].users[socket.id])
 
-            socket.emit('user-connected', games[game].users[socket.id])
-            socket.broadcast.to(game).emit('other-user-connected', games[game].users[socket.id])
+        //Start game once 2 people are in and the variables are set
+        if (
+            Object.keys(games[gameName].users).length >= 2
+            && games[gameName].roles['circle'].taken === true
+            && games[gameName].roles['x'].taken === true
+        ) {
+            games[gameName] = initGame(games[gameName])
 
-            //Start game once 2 people are in and the variables are set
-            if (
-                Object.keys(games[game].users).length >= 2
-                && games[game].roles['circle'].taken === true
-                && games[game].roles['x'].taken === true
-            ) {
-                initGame(game)
-                io.sockets.to(game).emit('start-game', { turn: games[game].turn, gameName: game })
-            }
+            io.sockets.to(gameName).emit('start-game', {
+                turn: games[gameName].turn, 
+                gameName: gameName
+            })
         }
     })
     socket.on('place-mark', data => {
-        //Update game tile
-        games[data.game].tiles[data.cell].checked = true
-        games[data.game].tiles[data.cell].shape = data.currentTurn
+        if (games[data.gameName].active) {
+            //Update game tile
+            games[data.gameName].tiles[data.cell].checked = true
+            games[data.gameName].tiles[data.cell].shape = data.currentTurn
 
-        //Swap Turns
-        let newTurn
-        if (data.currentTurn === "circle") {
-            newTurn = "x"
-        }else if (data.currentTurn === "x") {
-            newTurn = "circle"
-        }
+            //Check for win or draw
+            let win = checkWin(games[data.gameName])
 
-        games[data.game].turn = newTurn
-        games[data.game].roles[data.currentTurn].turn = false
-        games[data.game].roles[newTurn].turn = true
+            if (win) {
+                games[data.gameName].active = false
+                io.sockets.to(data.gameName).emit('win', data.currentTurn)
+            } else if (false) {
+                games[data.gameName].active = false
+                io.sockets.to(data.gameName).emit('lose')
+            }
 
-        //Check for win or draw
-        let win = WINNING_COMBINATIONS.some(combination => {
-            return combination.every(index => {
-                return games[data.game].tiles[index].shape == data.currentTurn
-            })
-        })
-        let draw = games[data.game].tiles.every(tile => {
-            return tile.shape == 'x' || tile.shape == 'circle'
-        })
+            //Swap Turns
+            let newTurn = swapTurns(games[data.gameName].turn)
+            games[data.gameName].turn = newTurn
+            games[data.gameName].roles[games[data.gameName].turn].turn = false
+            games[data.gameName].roles[newTurn].turn = true
 
-        if (win) {
-            games[data.game].active = false
-            io.sockets.to(data.game).emit('win', data.currentTurn)
-        } else if (draw) {
-            games[data.game].active = false
-            io.sockets.to(data.game).emit('lose')
-        } else {
-            socket.emit('not-turn')
-            socket.broadcast.to(data.game).emit('turn')
-            io.sockets.to(data.game).emit('place-mark', {
-                newTurn: newTurn
-                ,currentTurn: data.currentTurn
+            io.sockets.to(data.gameName).emit('place-mark', {
+                game: games[data.gameName]
+                ,pastTurn: data.currentTurn
                 ,cell: data.cell
             })
         }
     })
     socket.on('request-restart', gameName => {
-        ++games[gameName].restart
-        if (games[gameName].restart === 2) {
-            initGame(gameName)
-            io.sockets.to(gameName).emit('start-game', { turn: games[gameName].turn, gameName: gameName })
-        }else {
-            socket.broadcast.to(gameName).emit('request-restart')
-        }
+        //Check if the user has already requested a rematch
+        if (games[gameName].users[socket.id].restart) return 
+
+        games[gameName].users[socket.id].restart = true
+        games[gameName].restart++
+
+        if (games[gameName].restart !== 2) return socket.broadcast.to(gameName).emit('request-restart')
+        
+        games[gameName] = initGame(games[gameName])
+
+        let newTurn = swapTurns(games[gameName].turn)
+        games[gameName].turn = newTurn
+
+        io.sockets.to(gameName).emit('start-game', {
+            turn: games[gameName].turn,
+            gameName: gameName
+        })
     })
     socket.on('disconnect', () => {
-        getUserGames(socket).forEach(game => {
-            userDisconnect = {
-                timeout: setTimeout(disconnectUser, 15000)
-                ,game: game
-                ,user: {
-                    id: socket.id
-                    ,name: games[game].users[socket.id].name
-                    ,role: games[game].users[socket.id].role
-                }
-            }
+        getUserGames(games, socket.id).forEach(gameName => {
+            let userShape = games[gameName].users[socket.id].role
             
-            function disconnectUser() {
-                //Make the shape available in the lobby when a user leaves
-                let userRole = games[game].users[socket.id].role
-                games[game].roles[userRole].taken = false
-                games[game].active = false
-
-                //Send the disconnect message and then delete the user
-                io.sockets.to(game).emit('user-disconnected', games[game].users[socket.id])
-                delete games[game].users[socket.id]
-            }
+            games[gameName].active = false
+            games[gameName].roles[userShape].taken = false
+            
+            socket.broadcast.to(gameName).emit('user-disconnected', games[gameName].users[socket.id])
+            delete games[gameName].users[socket.id]
         })
     })
 })
-
-function getUserGames(socket) {
-    return Object.entries(games).reduce((names, [name, game]) => {
-        if (game.users[socket.id] != null) names.push(name)
-        return names
-    }, [])
-}
-
-function initGame(gameName) {
-    games[gameName].active = true
-    games[gameName].tiles = []
-    games[gameName].turn = 'circle'
-    games[gameName].restart = 0
-
-    let tileCount = 0
-    while (tileCount < 9) {
-        games[gameName].tiles[`cell${tileCount}`] = {
-            id: `cell${tileCount}`
-            ,checked: false
-            ,shape: null
-        }   
-        tileCount++         
-    }
-}
-
-function checkWin() {
-    return WINNING_COMBINATIONS.some(combination => {
-        return combination.every(index => {
-            return cellElements[index].classList.contains()
-        })
-    })
-}

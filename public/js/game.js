@@ -2,14 +2,14 @@ const socket = io('http://localhost:3000')
 const X_CLASS = 'x'
 const CIRCLE_CLASS = 'circle'
 const WINNING_COMBINATIONS = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6]
+    ['cell0', 'cell1', 'cell2'],
+    ['cell3', 'cell4', 'cell5'],
+    ['cell6', 'cell7', 'cell8'],
+    ['cell0', 'cell3', 'cell6'],
+    ['cell1', 'cell4', 'cell7'],
+    ['cell2', 'cell5', 'cell8'],
+    ['cell0', 'cell4', 'cell8'],
+    ['cell2', 'cell4', 'cell6']
 ]
 let currentTurn
 let userShape
@@ -38,18 +38,19 @@ if (board != null) {
 }
 
 socket.on('game-created', game => {
+    //Add a new game listing on the homepage
     const gameElement = document.createElement('div')
     gameElement.innerText = game
     const gameLink = document.createElement('a')
     gameLink.href = `/${game}`
     gameLink.innerText = 'join'
-    // gameContainer.append(gameElement)
-    // gameContainer.append(gameLink)
+    gameContainer.append(gameElement)
+    gameContainer.append(gameLink)
 })
 
 socket.on('user-connected', user => {
-    console.log(user)
     userShape = user.role
+    console.log(user)
 })
 
 socket.on('other-user-connected', user => {
@@ -58,40 +59,31 @@ socket.on('other-user-connected', user => {
 
 socket.on('start-game', data => {
     currentTurn = data.turn
-    // socket.emit('init-game', data.gameName)
-    startGame(data.gameName)
-    console.log('game started')
+    startGame()
     swapTurns()
+
+    console.log('Game Started')
 })
-
-// socket.on('init-game', () => {
-//     console.log('game started')
-
-// })
 
 socket.on('place-mark', data => {
+    currentTurn = data.game.turn
     let cell = document.getElementById(data.cell)
-    placeMark(cell, data.currentTurn)
-})
 
-socket.on('not-turn', () => {
-    cellElements.forEach(cell => {
-        cell.removeEventListener('click', handleClick)
-        cell.classList.add('none')
-    })
-    turnMessage.innerText = ""
-})
-
-socket.on('turn', () => {
-    cellElements.forEach(cell => {
-        cell.removeEventListener('click', handleClick)
-        cell.addEventListener('click', handleClick, {once: true})
-        cell.classList.remove('none')
-    })
-    turnMessage.innerText = "It's Your Turn!"
+    //Get the tiles that have already been clicked
+    let checkedTiles = []
+    for (key in data.game.tiles) {
+        if (data.game.tiles[key].checked) {
+            checkedTiles.push(data.game.tiles[key])
+        }
+    }
+    swapTurns()
+    placeMark(checkedTiles, cell, data.pastTurn)
 })
 
 socket.on('win', shape => {
+    restartButton.addEventListener('click', () => {
+        socket.emit('request-restart', gameName)
+    })
     winningMessageTextElement.innerText = `${shape}'s Win!`
     winningMessageElement.classList.add('show')
 })
@@ -101,7 +93,8 @@ socket.on('request-restart', () => {
 })
 
 socket.on('user-reconnected', data => {
-    startGame(data.gameName)
+    startGame()
+    swapTurns()
     data.tiles.forEach( tile => {
         if (tile.checked) {
             document.getElementById(tile.id).classList.add(tile.shape)
@@ -117,7 +110,7 @@ socket.on('user-disconnected', user => {
     console.log(`${user.name} has left!`)
 })
 
-function startGame(gameName) {
+function startGame() {
     winningMessageElement.classList.remove('show')
     cellElements.forEach(cell => {
         cell.classList.remove(X_CLASS)
@@ -128,14 +121,14 @@ function startGame(gameName) {
 
 function handleClick(e) {
     const cell = e.target
-    const currentTurn = userShape
+
+    socket.emit('place-mark', { gameName: gameName, cell: cell.id, currentTurn: currentTurn })
     
-    socket.emit('place-mark', { game: gameName, cell: cell.id, currentTurn: currentTurn })
-    placeMark(cell, currentTurn)
+    placeMark([], cell, currentTurn)
 }
 
 function swapTurns() {
-    if(userShape !== currentTurn) {
+    if(userShape != currentTurn) {
         cellElements.forEach(cell => {
             cell.removeEventListener('click', handleClick)
             cell.classList.add('none')
@@ -143,9 +136,9 @@ function swapTurns() {
         turnMessage.innerText = ""
     } else {
         cellElements.forEach(cell => {
+            cell.classList.remove('none')
             cell.removeEventListener('click', handleClick)
             cell.addEventListener('click', handleClick, {once: true})
-            cell.classList.remove('none')
         })
         turnMessage.innerText = "It's Your Turn!"
     }
@@ -157,14 +150,14 @@ function isDraw() {
     })
 }
 
-function placeMark(cell, currentClass){
+function placeMark(checkedTiles, cell, currentClass){
+    if (checkedTiles.length !== 0) {
+        checkedTiles.forEach(tile => {
+            document.getElementById(tile.id).removeEventListener('click', handleClick)
+        })
+    }
     cell.classList.add(currentClass)
 }
-
-// function swapTurns() {
-//     circleTurn = !circleTurn
-// }
-
 
 function getCookie(cname) {
     var name = cname + "=";
