@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe</title>
 
-    <script>
-        const gameName = "<%= gameName %>"
+    <script defer src="/js/darkMode.js"></script>
+    <script> 
+        const gameName = "<%= gameName %>" 
     </script>
     <script defer src="http://localhost:3000/socket.io/socket.io.js"></script>
     <script defer src="/js/game.js"></script>
@@ -17,22 +18,53 @@
 
 </head>
 <body>
-    <div id="startGameButon">Start Game</div>
-    <div id="turnMessage"></div>
-    <div id="board" class="board">
-        <div class="cell" id="cell0" data-cell></div>
-        <div class="cell" id="cell1" data-cell></div>
-        <div class="cell" id="cell2" data-cell></div>
-        <div class="cell" id="cell3" data-cell></div>
-        <div class="cell" id="cell4" data-cell></div>
-        <div class="cell" id="cell5" data-cell></div>
-        <div class="cell" id="cell6" data-cell></div>
-        <div class="cell" id="cell7" data-cell></div>
-        <div class="cell" id="cell8" data-cell></div>
-    </div>
-    <div id="winningMessage" class="winning-message">
-        <div data-winning-message-text></div>
-        <button id="restartButton">Restart</button>
+    <div class="container">
+        <div class="name-popup">
+            <p id="name-input-label">Please enter your name here</p>
+            <div class="input-Bar">
+                <input type="text" name="inputName" id="inputName">
+                <button type="submit" id="nameInputSubmit" class="button">Enter</button>
+            </div>
+        </div>
+        <div class="left">
+            <header>
+                <div>
+                    <a href="/" class="back-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M3.828 9l6.071-6.071-1.414-1.414L0 10l.707.707 7.778 7.778 1.414-1.414L3.828 11H20V9H3.828z"/></svg>
+                    </a>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="dark-mode-checkbox" onclick="toggleDarkMode()">
+                    <span class="slider round"></span>
+                </label>
+                    <!-- button class="button theme-toggle-button">Dark Mode</button> -->
+            </header>
+            <div class="game">
+                <div id="turnMessage"></div>
+                <div id="board" class="board">
+                    <div class="cell" id="cell0" data-cell></div>
+                    <div class="cell" id="cell1" data-cell></div>
+                    <div class="cell" id="cell2" data-cell></div>
+                    <div class="cell" id="cell3" data-cell></div>
+                    <div class="cell" id="cell4" data-cell></div>
+                    <div class="cell" id="cell5" data-cell></div>
+                    <div class="cell" id="cell6" data-cell></div>
+                    <div class="cell" id="cell7" data-cell></div>
+                    <div class="cell" id="cell8" data-cell></div>
+                </div>
+                <div id="winningMessage" class="winning-message">
+                    <div data-winning-message-text></div>
+                    <button id="restartButton">Restart</button>
+                </div>
+            </div>
+        </div>
+        <div class="chat">
+            <div id="message-container"></div>
+            <form id="send-container">
+                <input type="text" id="message-input" autocomplete="off">
+                <button type="submit" id="send-button" class="button">Send</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>

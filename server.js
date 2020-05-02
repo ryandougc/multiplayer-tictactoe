@@ -7,7 +7,7 @@ const {
     setUserRole,
     initGame,
     swapTurns,
-    checkWin,
+    checkState,
     getUserGames
 }                   = require('./serverLogic')
 const games         = {}
@@ -22,9 +22,7 @@ app.get('/', (req, res) => {
 })
 
 app.post('/game', (req, res) => {
-    if(games[req.body.games] != null){
-        return res.redirect('/')
-    }
+    if(games[req.body.games] != null || games[req.body.games]) return res.redirect('/')
     games[req.body.game] = {
         users: {   
         }, active: false
@@ -85,6 +83,9 @@ io.on('connection', socket => {
             })
         }
     })
+    socket.on('send-chat-message', data => {
+        socket.to(data.gameName).broadcast.emit('chat-message', {message: data.message, fromUser: games[data.gameName].users[socket.id].name })
+    })
     socket.on('place-mark', data => {
         if (games[data.gameName].active) {
             //Update game tile
@@ -92,14 +93,14 @@ io.on('connection', socket => {
             games[data.gameName].tiles[data.cell].shape = data.currentTurn
 
             //Check for win or draw
-            let win = checkWin(games[data.gameName])
+            let state = checkState(games[data.gameName])
 
-            if (win) {
+            if (state === true) {
                 games[data.gameName].active = false
                 io.sockets.to(data.gameName).emit('win', data.currentTurn)
-            } else if (false) {
+            } else if (state === false) {
                 games[data.gameName].active = false
-                io.sockets.to(data.gameName).emit('lose')
+                io.sockets.to(data.gameName).emit('draw')
             }
 
             //Swap Turns
@@ -123,11 +124,14 @@ io.on('connection', socket => {
         games[gameName].restart++
 
         if (games[gameName].restart !== 2) return socket.broadcast.to(gameName).emit('request-restart')
-        
-        games[gameName] = initGame(games[gameName])
 
-        let newTurn = swapTurns(games[gameName].turn)
-        games[gameName].turn = newTurn
+        let pastTurn = games[gameName].turn
+
+        initGame(games[gameName])
+
+        games[gameName].roles[games[gameName].turn].turn = false
+        games[gameName].turn = pastTurn
+        games[gameName].roles[pastTurn].turn = true
 
         io.sockets.to(gameName).emit('start-game', {
             turn: games[gameName].turn,

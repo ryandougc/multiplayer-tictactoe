@@ -24,37 +24,68 @@ const winningMessageElement = document.getElementById('winningMessage')
 const winningMessageTextElement = document.querySelector('[data-winning-message-text]')
 const restartButton = document.getElementById('restartButton')
 const turnMessage = document.getElementById('turnMessage')
+const chat = document.querySelector('.chat')
 
-if (nameInput != null) {
-    nameInputSubmit.addEventListener('click', () => {
-        name = nameInput.value
-        document.cookie = `name=${nameInput.value}`
-    })
+const messageContainer = document.getElementById('message-container')
+const messageForm = document.getElementById('send-container')
+const messageInput = document.getElementById('message-input')
+
+if( !getCookie('name') ||  !getCookie('name') === "") {
+    document.querySelector('.name-popup').classList.add('show')
+}else {
+    document.querySelector('.name-popup').classList.remove('show')
 }
 
+nameInputSubmit.addEventListener("click", () => {
+    name = nameInput.value
+    document.cookie = `name=${nameInput.value}`
+    document.querySelector('.name-popup').classList.remove('show')
+})
+
 //User joins game
-if (board != null) {
+if (chat != null) {
     socket.emit('new-user', gameName, name)
+}
+
+if(messageForm != null){
+    messageForm.addEventListener('submit', e => {
+        e.preventDefault()
+        const message = messageInput.value
+        appendMessage('self', `You: ${message}`)
+        socket.emit('send-chat-message', { gameName: gameName, message: message })
+        messageInput.value = ''
+    })
 }
 
 socket.on('game-created', game => {
     //Add a new game listing on the homepage
     const gameElement = document.createElement('div')
-    gameElement.innerText = game
+    gameElement.classList.add('game-card')
+
+    const gameName = document.createElement('h4')
+    gameName.innerText = game
+
     const gameLink = document.createElement('a')
     gameLink.href = `/${game}`
     gameLink.innerText = 'join'
+
+    gameElement.append(gameName)
+    gameElement.append(gameLink)
+
     gameContainer.append(gameElement)
-    gameContainer.append(gameLink)
 })
 
 socket.on('user-connected', user => {
     userShape = user.role
-    console.log(user)
+    appendMessage('game', 'You connected')
 })
 
 socket.on('other-user-connected', user => {
-    console.log(`${user.name} has joined!`)
+    appendMessage('game', `${user.name} connected`)
+})
+
+socket.on('chat-message', data => {
+    appendMessage('other', `${data.fromUser}: ${data.message}`)
 })
 
 socket.on('start-game', data => {
@@ -62,7 +93,7 @@ socket.on('start-game', data => {
     startGame()
     swapTurns()
 
-    console.log('Game Started')
+    appendMessage('game', 'Game Has Started !')
 })
 
 socket.on('place-mark', data => {
@@ -81,15 +112,21 @@ socket.on('place-mark', data => {
 })
 
 socket.on('win', shape => {
-    restartButton.addEventListener('click', () => {
-        socket.emit('request-restart', gameName)
-    })
+    restartButton.removeEventListener('click', requestRematch)
+    restartButton.addEventListener('click', requestRematch)
     winningMessageTextElement.innerText = `${shape}'s Win!`
     winningMessageElement.classList.add('show')
 })
 
+socket.on('draw', () => {
+    restartButton.removeEventListener('click', requestRematch)
+    restartButton.addEventListener('click', requestRematch)
+    winningMessageTextElement.innerText = `Its a Draw!`
+    winningMessageElement.classList.add('show')
+})
+
 socket.on('request-restart', () => {
-    console.log('Other player wants to play again')
+    appendMessage('game', 'Other player wants to play again')
 })
 
 socket.on('user-reconnected', data => {
@@ -103,11 +140,11 @@ socket.on('user-reconnected', data => {
 })
 
 socket.on('other-user-reconnected', data => {
-    console.log(`${data.user.name} has reconnected`)
+    appendMessage('game', `${data.user.name} has reconnected`)
 })
 
 socket.on('user-disconnected', user => {
-    console.log(`${user.name} has left!`)
+    appendMessage('game', `${user.name} has left!`)
 })
 
 function startGame() {
@@ -133,7 +170,7 @@ function swapTurns() {
             cell.removeEventListener('click', handleClick)
             cell.classList.add('none')
         })
-        turnMessage.innerText = ""
+        turnMessage.innerText = "It's Your Opponent's Turn"
     } else {
         cellElements.forEach(cell => {
             cell.classList.remove('none')
@@ -142,6 +179,10 @@ function swapTurns() {
         })
         turnMessage.innerText = "It's Your Turn!"
     }
+}
+
+function requestRematch() {
+    socket.emit('request-restart', gameName)
 }
 
 function isDraw() {
@@ -157,6 +198,43 @@ function placeMark(checkedTiles, cell, currentClass){
         })
     }
     cell.classList.add(currentClass)
+
+    let css
+    if (userShape === 'circle') {
+        css = `                
+            .cell.x::before,
+            .cell.x::after {
+                background-color: rgb(156, 31, 31);
+            }
+        
+            .cell.circle::before{
+                background-color: #187bcd;
+                float: right;
+            }
+        `,
+        head = document.head || document.getElementsByTagName('head')[0],
+        style = document.createElement('style');
+ 
+    }else if (userShape === 'x') {
+        css = `                
+            .cell.x::before,
+            .cell.x::after {
+                background-color: #187bcd;
+            }
+            
+            .cell.circle::before{
+                background-color: rgb(156, 31, 31);
+                float: left;
+            }
+        `,
+        head = document.head || document.getElementsByTagName('head')[0],
+        style = document.createElement('style');
+
+    }
+    
+    head.appendChild(style);
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode(css));
 }
 
 function getCookie(cname) {
@@ -173,4 +251,43 @@ function getCookie(cname) {
         }
     }
     return "";
+}
+
+function appendMessage(origin, message){
+    const messageElement = document.createElement('div')
+    const messageTimeStamp = document.createElement('div')
+    messageElement.innerText = message
+    messageTimeStamp.innerText = getCurrentTime()
+    messageContainer.append(messageElement)
+
+    if (origin === "game") {
+        messageElement.classList.add('gameMessage')
+    } else if (origin === "other") {
+        messageElement.classList.add('otherMessage')
+    } else if (origin === "self") {
+        messageElement.classList.add('selfMessage')
+    }
+
+    if (messageContainer.scrollTop + messageContainer.clientHeight === messageContainer.scrollHeight) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+}
+
+function getCurrentTime() {
+    let currentTime = new Date()
+    let hours = convert12to24(currentTime.getHours())
+    let minutes = convert2digits(currentTime.getMinutes())
+    let seconds = convert2digits(currentTime.getSeconds())
+
+    return `${hours.hour}:${minutes}:${seconds}${hours.ampm}`
+}
+
+function convert12to24(hours) {
+    if (hours == 0) return { hour: '12', ampm: 'am' }
+    if (hours >= 1 && hours <= 12 ) return { hour: hours.toString(), ampm: 'am' }
+    return { hour:(hours - 12).toString(), ampm: 'pm' }
+}
+
+function convert2digits(minutes) {
+    return (minutes < 10) ? `${0}${minutes}` : minutes.toString()
 }

@@ -2,7 +2,7 @@ const {
     setUserRole,
     initGame,
     swapTurns,
-    checkWin,
+    checkState,
     getUserGames
 }                   = require('../serverLogic')
 
@@ -32,7 +32,7 @@ const games = {
                 turn: false
             }
         },
-        tiles: []
+        tiles: {}
     }
 }
 
@@ -64,13 +64,18 @@ test('should output user role: spec', () => {
 test('should output active game', () => {
     const game = initGame(games['test'])
 
+    games['test'] = game
+    for (var tileId in games['test'].tiles) {
+        games['test'].tiles[tileId].checked = true
+    }
+
     expect(game.active).toBeTruthy()
 })
 
-test('should output false', () => {
-    const win = checkWin(games['test'], games['test'].turn)
+test('should output undefined', () => {
+    const state = checkState(games['test'])
 
-    expect(win).toBe(false)
+    expect(state).toBe(true)
 })
 
 test('should output x', () => {

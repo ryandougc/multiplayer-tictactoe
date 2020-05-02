@@ -10,6 +10,8 @@ exports.initGame = (game) => {
     game.active = true
     game.tiles = {}
     game.turn = 'circle'
+    game.roles['circle'].turn = true
+    game.roles['x'].turn = false
     game.restart = 0
 
     let tileCount = 0
@@ -22,6 +24,11 @@ exports.initGame = (game) => {
         tileCount++         
     }
 
+    //Reset user restarts
+    for (var userId in game.users) {
+        game.users[userId].restart = false
+    }
+
     return game
 }
 
@@ -31,7 +38,7 @@ exports.swapTurns = (currentTurn) => {
     return
 }
 
-exports.checkWin = (game) => {
+exports.checkState = (game) => {
     const WINNING_COMBINATIONS = [
         ['cell0', 'cell1', 'cell2'],
         ['cell3', 'cell4', 'cell5'],
@@ -43,11 +50,19 @@ exports.checkWin = (game) => {
         ['cell2', 'cell4', 'cell6']
     ]
 
-    return WINNING_COMBINATIONS.some(combination => {
+    let win = WINNING_COMBINATIONS.some(combination => {
         return combination.every(index => {
             return game.tiles[index].shape == game.turn
         })
     })
+
+    if (win) return true
+
+    for (var tileId in game.tiles) {
+        if(game.tiles[tileId].checked === false) return undefined
+    }
+
+    return true
 }
 
 exports.getUserGames = (games, socketId) => {
