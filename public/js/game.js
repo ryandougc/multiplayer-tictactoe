@@ -75,6 +75,17 @@ socket.on('game-created', game => {
     gameContainer.append(gameElement)
 })
 
+socket.on('game-deleted', game => {
+    let gameCards = document.querySelectorAll('.game-card')
+
+    gameCards.forEach(card => {
+        if (card.childNodes[0].innerText === game) {
+            card.remove()
+        }
+    })
+
+})
+
 socket.on('user-connected', user => {
     userShape = user.role
     appendMessage('game', 'You connected')
@@ -145,6 +156,7 @@ socket.on('other-user-reconnected', data => {
 
 socket.on('user-disconnected', user => {
     appendMessage('game', `${user.name} has left!`)
+
 })
 
 function startGame() {
@@ -290,4 +302,11 @@ function convert12to24(hours) {
 
 function convert2digits(minutes) {
     return (minutes < 10) ? `${0}${minutes}` : minutes.toString()
+}
+
+function pauseGame() {
+    cellElements.forEach(cell => {
+        cell.removeEventListener('click', handleClick)
+        cell.classList.add('none')
+    })
 }
