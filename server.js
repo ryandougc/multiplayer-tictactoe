@@ -60,7 +60,7 @@ io.on('connection', socket => {
 
             //Set the users role
             let userRole = setUserRole(games[gameName], socket.id)
-            games[gameName].roles[userRole].taken = true
+
             games[gameName].users[socket.id] = { 
                 name: userName,
                 role: userRole,
@@ -121,8 +121,7 @@ io.on('connection', socket => {
         }
     })
     socket.on('request-restart', gameName => {
-        //Check if the user has already requested a rematch
-        if (!games[data.gameName] || games[gameName].users[socket.id].restart) return 
+        if (!games[gameName] || games[gameName].users[socket.id].role === 'spec' || games[gameName].users[socket.id].restart) return 
 
         games[gameName].users[socket.id].restart = true
         games[gameName].restart++

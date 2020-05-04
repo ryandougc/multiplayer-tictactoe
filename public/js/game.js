@@ -79,6 +79,7 @@ socket.on('user-connected', user => {
     userShape = user.role
     turnMessage.innerText = "Waiting for opponent..."
     appendMessage('game', 'You connected')
+
 })
 
 socket.on('other-user-connected', user => {
@@ -114,17 +115,29 @@ socket.on('place-mark', data => {
 })
 
 socket.on('win', shape => {
-    restartButton.removeEventListener('click', requestRematch)
-    restartButton.addEventListener('click', requestRematch)
+    if(userShape !== 'spec') {
+        restartButton.removeEventListener('click', requestRematch)
+        restartButton.addEventListener('click', requestRematch)
+    }
     winningMessageTextElement.innerText = `${shape}'s Win!`
     winningMessageElement.classList.add('show')
+
+    if(userShape === 'spec') {
+        restartButton.style.display = 'none'
+    }
 })
 
 socket.on('draw', () => {
-    restartButton.removeEventListener('click', requestRematch)
-    restartButton.addEventListener('click', requestRematch)
+    if(userShape !== 'spec') {
+        restartButton.removeEventListener('click', requestRematch)
+        restartButton.addEventListener('click', requestRematch)
+    }
     winningMessageTextElement.innerText = `Its a Draw!`
     winningMessageElement.classList.add('show')
+    
+    if(userShape === 'spec') {
+        restartButton.style.display = 'none'
+    }
 })
 
 socket.on('request-restart', () => {
@@ -172,14 +185,22 @@ function swapTurns() {
             cell.removeEventListener('click', handleClick)
             cell.classList.add('none')
         })
-        turnMessage.innerText = "It's Your Opponent's Turn"
+        if(userShape === 'spec'){
+            turnMessage.innerText = "You are spectating"
+        }else {
+            turnMessage.innerText = "It's Your Opponent's Turn"
+        }
     } else {
         cellElements.forEach(cell => {
             cell.classList.remove('none')
             cell.removeEventListener('click', handleClick)
             cell.addEventListener('click', handleClick, {once: true})
         })
-        turnMessage.innerText = "It's Your Turn!"
+        if(userShape === 'spec'){
+            turnMessage.innerText = "You are spectating"
+        }else {
+            turnMessage.innerText = "It's Your Turn!"
+        }
     }
 }
 

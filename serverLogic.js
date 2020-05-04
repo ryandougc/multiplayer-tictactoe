@@ -1,7 +1,13 @@
 exports.setUserRole = (game) => {
     //Set circle or X for user
-    if (!game.roles['circle'].taken) return 'circle'
-    if (!game.roles['x'].taken) return 'x'
+    if (!game.roles['circle'].taken) {
+        game.roles['circle'].taken = true
+        return 'circle'
+    }
+    if (!game.roles['x'].taken) {
+        game.roles['x'].taken = true
+        return 'x'
+    }
 
     return 'spec'
 }
