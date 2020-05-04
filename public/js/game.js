@@ -134,7 +134,7 @@ socket.on('draw', () => {
     }
     winningMessageTextElement.innerText = `Its a Draw!`
     winningMessageElement.classList.add('show')
-    
+
     if(userShape === 'spec') {
         restartButton.style.display = 'none'
     }
@@ -223,7 +223,7 @@ function placeMark(checkedTiles, cell, currentClass){
     cell.classList.add(currentClass)
 
     let css
-    if (userShape === 'circle') {
+    if (userShape === 'circle' || userShape == 'spec') {
         css = `                
             .cell.x::before,
             .cell.x::after {
