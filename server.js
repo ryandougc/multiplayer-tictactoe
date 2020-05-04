@@ -54,40 +54,44 @@ server.listen(3000)
 
 io.on('connection', socket => {
     socket.on('new-user', (gameName, userName) => {
-        //Add a new user into a game
-        socket.join(gameName)
+        if(games[gameName]){
+            //Add a new user into a game
+            socket.join(gameName)
 
-        //Set the users role
-        let userRole = setUserRole(games[gameName], socket.id)
-        games[gameName].roles[userRole].taken = true
-        games[gameName].users[socket.id] = { 
-            name: userName,
-            role: userRole,
-            restart: false
-        }
+            //Set the users role
+            let userRole = setUserRole(games[gameName], socket.id)
+            games[gameName].roles[userRole].taken = true
+            games[gameName].users[socket.id] = { 
+                name: userName,
+                role: userRole,
+                restart: false
+            }
 
-        socket.emit('user-connected', games[gameName].users[socket.id])
-        socket.broadcast.to(gameName).emit('other-user-connected', games[gameName].users[socket.id])
+            socket.emit('user-connected', games[gameName].users[socket.id])
+            socket.broadcast.to(gameName).emit('other-user-connected', games[gameName].users[socket.id])
 
-        //Start game once 2 people are in and the variables are set
-        if (
-            Object.keys(games[gameName].users).length >= 2
-            && games[gameName].roles['circle'].taken === true
-            && games[gameName].roles['x'].taken === true
-        ) {
-            games[gameName] = initGame(games[gameName])
+            //Start game once 2 people are in and the variables are set
+            if (
+                Object.keys(games[gameName].users).length >= 2
+                && games[gameName].roles['circle'].taken === true
+                && games[gameName].roles['x'].taken === true
+            ) {
+                games[gameName] = initGame(games[gameName])
 
-            io.sockets.to(gameName).emit('start-game', {
-                turn: games[gameName].turn, 
-                gameName: gameName
-            })
+                io.sockets.to(gameName).emit('start-game', {
+                    turn: games[gameName].turn, 
+                    gameName: gameName
+                })
+            }
         }
     })
     socket.on('send-chat-message', data => {
-        socket.to(data.gameName).broadcast.emit('chat-message', {message: data.message, fromUser: games[data.gameName].users[socket.id].name })
+        if (games[data.gameName]) {
+            socket.to(data.gameName).broadcast.emit('chat-message', {message: data.message, fromUser: games[data.gameName].users[socket.id].name })
+        }
     })
     socket.on('place-mark', data => {
-        if (games[data.gameName].active) {
+        if (games[data.gameName] && games[data.gameName].active) {
             //Update game tile
             games[data.gameName].tiles[data.cell].checked = true
             games[data.gameName].tiles[data.cell].shape = data.currentTurn
@@ -118,7 +122,7 @@ io.on('connection', socket => {
     })
     socket.on('request-restart', gameName => {
         //Check if the user has already requested a rematch
-        if (games[gameName].users[socket.id].restart) return 
+        if (!games[data.gameName] || games[gameName].users[socket.id].restart) return 
 
         games[gameName].users[socket.id].restart = true
         games[gameName].restart++
@@ -140,13 +144,19 @@ io.on('connection', socket => {
     })
     socket.on('disconnect', () => {
         getUserGames(games, socket.id).forEach(gameName => {
-            let userShape = games[gameName].users[socket.id].role
-            
-            games[gameName].active = false
-            games[gameName].roles[userShape].taken = false
-            
-            socket.broadcast.to(gameName).emit('user-disconnected', games[gameName].users[socket.id])
-            delete games[gameName].users[socket.id]
+            if(games[gameName]){
+                let userShape = games[gameName].users[socket.id].role
+                
+                games[gameName].active = false
+                games[gameName].roles[userShape].taken = false
+                
+                socket.broadcast.to(gameName).emit('user-disconnected', games[gameName].users[socket.id])
+                delete games[gameName].users[socket.id]
+
+                if(!io.sockets.adapter.rooms[gameName]){
+                    delete games[gameName]
+                }
+            }
         })
     })
 })

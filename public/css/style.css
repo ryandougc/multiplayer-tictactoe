@@ -246,10 +246,6 @@ header {
     flex-direction: column;
 }
 
-#homepage-header .game {
-    padding-left: 5rem;
-}
-
 #homepage-header .toggle-switch {
     align-self: flex-start;
 }
@@ -304,6 +300,18 @@ header {
     color: var(--accent-color)
 }
 
+/* #game-example {
+    -webkit-perspective: 300px;
+    -moz-perspective: 300px;
+      -o-perspective: 300px;
+         perspective: 300px;
+}
+
+#board-example {
+    position: absolute;
+    overflow: hidden;
+    transform: translateY(21px) translate(0px, 33%) rotate3d(1, 0, 0, 90deg);
+} */
 
 /*  Game Page Setup     */
 .left {
@@ -424,10 +432,6 @@ header {
 
 .cell.none {
     cursor: not-allowed;
-}
-
-.cell.blank {
-    cursor: inherit;
 }
 
 .cell.x::before,

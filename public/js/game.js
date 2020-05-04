@@ -77,10 +77,12 @@ socket.on('game-created', game => {
 
 socket.on('user-connected', user => {
     userShape = user.role
+    turnMessage.innerText = "Waiting for opponent..."
     appendMessage('game', 'You connected')
 })
 
 socket.on('other-user-connected', user => {
+    turnMessage.innerText = ""
     appendMessage('game', `${user.name} connected`)
 })
 

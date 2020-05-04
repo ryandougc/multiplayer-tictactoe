@@ -12,6 +12,20 @@
 
     <style>
         @import url('/css/style.css');
+
+        .cell.x::before,
+        .cell.x::after {
+            background-color: rgb(156, 31, 31);
+        }
+        
+        .cell.circle::before{
+            background-color: #187bcd;
+            float: right;
+        }
+
+        .cell {
+            cursor: default !important;
+        }
     </style>
 </head>
 <body>
@@ -36,17 +50,23 @@
             <span class="slider round"></span>
         </label>
         <div class="game-container">
-            <div class="game">
-                <div id="board" class="board example">
-                    <div class="cell blank" id="cell0" data-cell></div>
-                    <div class="cell blank" id="cell1" data-cell></div>
-                    <div class="cell blank" id="cell2" data-cell></div>
-                    <div class="cell blank" id="cell3" data-cell></div>
-                    <div class="cell blank" id="cell4" data-cell></div>
-                    <div class="cell blank" id="cell5" data-cell></div>
-                    <div class="cell blank" id="cell6" data-cell></div>
-                    <div class="cell blank" id="cell7" data-cell></div>
-                    <div class="cell blank" id="cell8" data-cell></div>
+            <div id="board-example">
+                <div id="quadrant1" class="quadrant"></div>
+                <div id="quadrant2" class="quadrant"></div>
+                <div id="quadrant3" class="quadrant"></div>
+                <div id="quadrant4" class="quadrant"></div>
+            </div>
+            <div id="game-example" class="game">
+                <div id="board-example" class="board">
+                    <div class="cell x" id="cell0" data-cell></div>
+                    <div class="cell" id="cell1" data-cell></div>
+                    <div class="cell circle" id="cell2" data-cell></div>
+                    <div class="cell" id="cell3" data-cell></div>
+                    <div class="cell circle" id="cell4" data-cell></div>
+                    <div class="cell x" id="cell5" data-cell></div>
+                    <div class="cell circle" id="cell6" data-cell></div>
+                    <div class="cell" id="cell7" data-cell></div>
+                    <div class="cell" id="cell8" data-cell></div>
                 </div>
             </div>
         </div>
@@ -74,4 +94,39 @@
         </div>
     </section>
 </body>
+<!-- <script
+			  src="https://code.jquery.com/jquery-3.5.0.min.js"
+			  integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+              crossorigin="anonymous">
+            </script> -->
+<script>
+    // let gameExample = document.getElementById('game-example')
+    // let boardExample = document.getElementById('board-example')
+    // let quadrant1 = document.getElementById('quadrant1')
+    // let quadrant2 = document.getElementById('quadrant2')
+    // let quadrant3 = document.getElementById('quadrant3')
+    // let quadrant4 = document.getElementById('quadrant4')
+    // let pageX = document.body.clientWidth;
+
+
+    // mousePerspective($(window).width(), $(window).height());
+
+    // function mousePerspective(w, h){
+    //     $(document).mousemove(function(e){
+    //         var Xmouse = e.pageX;
+    //         var Ymouse = e.pageY;
+
+    //         //calc perc
+    //         var Xperc = Xmouse / w;
+    //         var Yperc = Ymouse / h;
+    //         Xpos = Math.floor(Xperc * 100);
+    //         Ypos = Math.floor(Yperc * 100);
+    //         console.info("X Axis : " + Xpos + " Y Axis : " + Ypos);
+    //         Xrev = 100 - Xpos;
+    //         Yrev = 100 - Ypos;
+
+    //         $("#gameExample").css({ perspectiveOrigin: Xpos+'% '+Ypos+'%' });
+    //     })
+    // }
+</script>
 </html>

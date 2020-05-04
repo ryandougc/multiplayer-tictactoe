@@ -67,8 +67,11 @@ exports.checkState = (game) => {
 
 exports.getUserGames = (games, socketId) => {
     return Object.entries(games).reduce((names, [name, game]) => {
-        if (game.users[socketId] != null) names.push(name)
-        return names
+        if(game !== null){
+            if (game.users[socketId] != null) names.push(name)
+            return names
+        }
+        return []
     }, [])
 }
 
