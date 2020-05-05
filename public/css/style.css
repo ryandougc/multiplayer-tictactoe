@@ -69,13 +69,13 @@ h3 {
     transition: var(--darkMode-transition-speed);
 }
 
-.input-Bar {
+.input-bar {
     display: flex;
     flex-direction: row;
     justify-content: center;
     padding: 3rem;
 }
-.input-Bar input[type=text]{
+.input-bar input[type=text]{
     padding: 1em;
     height: 35px;
     color: #333;
@@ -87,7 +87,7 @@ h3 {
     transition: var(--darkMode-transition-speed);
 }
 
-.input-Bar button {
+.input-bar button {
     height: 35px;
     min-width: 75px;
     border-top-left-radius: 0;
@@ -112,11 +112,10 @@ h3 {
     padding-bottom: .5em;
 }
 
-.toggle-switch::after {
-    content: "Dark Mode";
+.toggle-switch p{
+    text-align: center;
     font-size: 0.75em;
-    width: 200px;
-
+    padding-top: .25em;
 }
 
 .toggle-switch input { 
@@ -192,7 +191,7 @@ header {
 }
 
 /*  Home Page Setup     */
-.name-popup {
+.prompt-user-name-container {
     display: none;
     position: fixed;
     top: 0;
@@ -208,15 +207,15 @@ header {
     z-index: 3;
 }
 
-.name-popup.show {
+.prompt-user-name-container.show {
     display: flex;
 }
 
-.name-popup p {
+.prompt-user-name-container p {
     font-size: .35em;
 }
 
-.name-popup button {
+.prompt-user-name-container .user-name-input-submit {
     height: 35px;
     width: 75px;
     border-top-left-radius: 0;
@@ -543,7 +542,7 @@ header {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    color: white;
+    color: var(--text-color);
     font-size: 5rem;
 }
 

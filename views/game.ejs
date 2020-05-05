@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe</title>
 
-    <script defer src="/js/darkMode.js"></script>
     <script> 
-        const gameName = "<%= gameName %>" 
+        const gameName  = "<%= gameName %>"
     </script>
+    <script defer src="/js/darkMode.js"></script>
     <script defer src="/socket.io/socket.io.js"></script>
     <script defer src="/js/game.js"></script>
+    <script defer src="/js/functions.js"></script>
 
     <style>
         @import url('/css/style.css');
@@ -19,12 +20,12 @@
 </head>
 <body>
     <div class="container">
-        <div class="name-popup">
+        <div class="prompt-user-name-container">
             <p id="name-input-label">Please enter your name here</p>
-            <div class="input-Bar">
-                <input type="text" name="inputName" id="inputName">
-                <button type="submit" id="nameInputSubmit" class="button">Enter</button>
-            </div>
+            <form class="input-bar">
+                <input type="text" name="inputName" class="user-name-input" autocomplete="off" maxlength="50">
+                <button type="submit" class="button user-name-input-submit">Enter</button>
+            </form>
         </div>
         <div class="left">
             <header>
@@ -36,8 +37,8 @@
                 <label class="toggle-switch">
                     <input type="checkbox" id="dark-mode-checkbox" onclick="toggleDarkMode()">
                     <span class="slider round"></span>
+                    <p>Dark<br>Mode</p>
                 </label>
-                    <!-- button class="button theme-toggle-button">Dark Mode</button> -->
             </header>
             <div class="game">
                 <div id="turnMessage"></div>
@@ -60,7 +61,7 @@
         </div>
         <div class="chat">
             <div id="message-container"></div>
-            <div id="feedback"></div>
+            <div id="typing-feedback"></div>
             <form id="send-container">
                 <input type="text" id="message-input" autocomplete="off" maxlength="250">
                 <button type="submit" id="send-button" class="button">Send</button>

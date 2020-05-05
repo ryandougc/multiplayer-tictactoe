@@ -1,116 +1,104 @@
-const socket = io('http://localhost:3000')
-const X_CLASS = 'x'
-const CIRCLE_CLASS = 'circle'
-const WINNING_COMBINATIONS = [
-    ['cell0', 'cell1', 'cell2'],
-    ['cell3', 'cell4', 'cell5'],
-    ['cell6', 'cell7', 'cell8'],
-    ['cell0', 'cell3', 'cell6'],
-    ['cell1', 'cell4', 'cell7'],
-    ['cell2', 'cell5', 'cell8'],
-    ['cell0', 'cell4', 'cell8'],
-    ['cell2', 'cell4', 'cell6']
-]
-let currentTurn
+const socket                        = io('http://localhost:3000')
+const X_CLASS                       = 'x'
+const CIRCLE_CLASS                  = 'circle'
+
 let userShape
-let name = getCookie('name')
+let currentTurn
+let userName                        = getCookie('name')
 let typingTimer
 
-const nameInput = document.getElementById('inputName')
-const nameInputSubmit = document.getElementById('nameInputSubmit')
-const gameContainer = document.getElementById('game-container')
-const board = document.getElementById('board')
-const cellElements = document.querySelectorAll('[data-cell]')
-const winningMessageElement = document.getElementById('winningMessage')
-const winningMessageTextElement = document.querySelector('[data-winning-message-text]')
-const restartButton = document.getElementById('restartButton')
-const turnMessage = document.getElementById('turnMessage')
-const chat = document.querySelector('.chat')
+// name elements
+const promptUserNameContainer       = document.querySelector('.prompt-user-name-container')
+const userNameInput                 = document.querySelector('.user-name-input')
+const userNameInputSubmit           = document.querySelector('.user-name-input-submit')
+// index page elements
+const joinGameList                 = document.getElementById('join-game-list')
+// game elements
+const board                         = document.getElementById('board')
+const cellElements                  = document.querySelectorAll('[data-cell]')
+const turnMessage                   = document.getElementById('turnMessage')
+// win/draw window
+const winningMessageElement         = document.getElementById('winningMessage')
+const winningMessageTextElement     = document.querySelector('[data-winning-message-text]')
+const restartButton                 = document.getElementById('restartButton')
+// chat elements
+const chat                          = document.querySelector('.chat')
+const messageContainer              = document.getElementById('message-container')
+const typingFeedback                = document.getElementById('typing-feedback')
+const messageForm                   = document.getElementById('send-container')
+const messageInput                  = document.getElementById('message-input')
 
-const messageContainer = document.getElementById('message-container')
-const messageForm = document.getElementById('send-container')
-const messageInput = document.getElementById('message-input')
 
-if( !getCookie('name') ||  !getCookie('name') === "") {
-    document.querySelector('.name-popup').classList.add('show')
-}else {
-    document.querySelector('.name-popup').classList.remove('show')
+
+//Check if user's name is set
+if (!userName ||  !userName === "") {
+    promptUserNameContainer.classList.add('show')
+
+    //Listen for username submit and create a name cookie
+    userNameInputSubmit.addEventListener("click", createUserNameCookie)
+} else {
+    promptUserNameContainer.classList.remove('show')
 }
 
-nameInputSubmit.addEventListener("click", () => {
-    name = nameInput.value
-    document.cookie = `name=${nameInput.value}`
-    document.querySelector('.name-popup').classList.remove('show')
-})
 
-//User joins game
+//If user goes on game page
 if (chat != null) {
-    socket.emit('new-user', gameName, name)
-}
+    socket.emit('new-user', gameName, userName)
 
-if(messageForm != null){
+    //Listen for keys to give typing feedback
     messageInput.addEventListener('keypress', () => {
         socket.emit('typing', gameName)
     })
 
+    //Listen for chat submit to send message
     messageForm.addEventListener('submit', e => {
-        e.preventDefault()
-        const message = messageInput.value
-        appendMessage('self', `You: ${message}`)
-        socket.emit('send-chat-message', { gameName: gameName, message: message })
-        messageInput.value = ''
+        sendChatMessage(e)
     })
 }
 
-socket.on('game-created', game => {
-    //Add a new game listing on the homepage
-    const gameElement = document.createElement('div')
-    gameElement.classList.add('game-card')
-
-    const gameName = document.createElement('h4')
-    gameName.innerText = game
-
-    const gameLink = document.createElement('a')
-    gameLink.href = `/${game}`
-    gameLink.innerText = 'join'
-
-    gameElement.append(gameName)
-    gameElement.append(gameLink)
-
-    gameContainer.append(gameElement)
+//SOCKET.IO RESPONSES
+socket.on('game-created', gameName => {
+    //Create a card for the new game and append it to the list
+    let gameCard = createGameCard(gameName)
+    joinGameList.append(gameCard)
 })
 
 socket.on('user-connected', user => {
     userShape = user.role
-    turnMessage.innerText = "Waiting for opponent..."
-    appendMessage('game', 'You connected')
 
+    if(userShape == "spec"){
+        turnMessage.innerText = "You are spectating"
+    }else {
+        turnMessage.innerText = "Waiting for opponent..."
+    }
+
+    appendMessage('game', 'You connected')
+    setShapeColour()
 })
 
 socket.on('other-user-connected', user => {
-    turnMessage.innerText = ""
     appendMessage('game', `${user.name} connected`)
 })
 
+socket.on('start-game', data => {
+    currentTurn = data.turn
+
+    startGame()
+    swapTurns()
+    appendMessage('game', 'Game Has Started !')
+})
+
 socket.on('typing', data => {
-    clearTimeout(typingTimer)
-    feedback.innerText = `${data.name} is typing...`
+    //Give feedback when someone is typing
+    typingFeedback.innerText = `${data.name} is typing...`
 
     typingTimer = setTimeout(() => {
-        feedback.innerText = ""
+        typingFeedback.innerText = ""
     }, 5000)
 })
 
 socket.on('chat-message', data => {
     appendMessage('other', `${data.fromUser}: ${data.message}`)
-})
-
-socket.on('start-game', data => {
-    currentTurn = data.turn
-    startGame()
-    swapTurns()
-
-    appendMessage('game', 'Game Has Started !')
 })
 
 socket.on('place-mark', data => {
@@ -124,53 +112,28 @@ socket.on('place-mark', data => {
             checkedTiles.push(data.game.tiles[key])
         }
     }
+
     swapTurns()
     placeMark(checkedTiles, cell, data.pastTurn)
 })
 
 socket.on('win', shape => {
-    if(userShape !== 'spec') {
-        restartButton.removeEventListener('click', requestRematch)
-        restartButton.addEventListener('click', requestRematch)
-    }
-    turnMessage.classList.add('hide')
-    board.classList.add('hide')
-    winningMessageTextElement.innerText = `${shape}'s Win!`
-    winningMessageElement.classList.add('show')
-
-    if(userShape === 'spec') {
-        restartButton.style.display = 'none'
-    }
+    winningMessageTextElement.innerText = gameEndMessage(shape, true)
 })
 
 socket.on('draw', () => {
-    if(userShape !== 'spec') {
-        restartButton.removeEventListener('click', requestRematch)
-        restartButton.addEventListener('click', requestRematch)
-    }
-    turnMessage.classList.add('hide')
-    board.classList.add('hide')
-    winningMessageTextElement.innerText = `Its a Draw!`
-    winningMessageElement.classList.add('show')
-
-    if(userShape === 'spec') {
-        restartButton.style.display = 'none'
-    }
+    winningMessageTextElement.innerText = gameEndMessage()
 })
 
 socket.on('request-restart', () => {
     appendMessage('game', 'Other player wants to play again')
 })
 
-socket.on('user-reconnected', data => {
-    startGame()
-    swapTurns()
-    data.tiles.forEach( tile => {
-        if (tile.checked) {
-            document.getElementById(tile.id).classList.add(tile.shape)
-        } 
-    })
-})
+// socket.on('user-reconnected', data => {
+//     startGame()
+//     swapTurns()
+//     fillCheckedTiles(data.tiles) 
+// })
 
 socket.on('other-user-reconnected', data => {
     appendMessage('game', `${data.user.name} has reconnected`)
@@ -178,21 +141,30 @@ socket.on('other-user-reconnected', data => {
 
 socket.on('user-disconnected', user => {
     appendMessage('game', `${user.name} has left!`)
-    cellElements.forEach(cell => {
-        cell.removeEventListener('click', handleClick)
-        cell.classList.add('none')
-    })
-    turnMessage.innerText = "Waiting for opponent..."
+
+    if(user.role !== "spec") {
+        cellElements.forEach(cell => {
+            cell.removeEventListener('click', handleClick)
+            cell.classList.add('none')
+        })
+        turnMessage.innerText = "Waiting for opponent..."
+    }
 })
 
+// FUNCTIONS ONLY FROM HERE ON
 function startGame() {
+    //Show hidden items from winning or draw screen
+    winningMessageElement.classList.remove('show')
     turnMessage.classList.remove('hide')
     board.classList.remove('hide')
-    winningMessageElement.classList.remove('show')
+
+    //Make sure game board is empty
     cellElements.forEach(cell => {
         cell.classList.remove(X_CLASS)
         cell.classList.remove(CIRCLE_CLASS)
     })
+
+    //Assign the hover for the user's shape
     board.classList.add(userShape)
 }
 
@@ -205,38 +177,27 @@ function handleClick(e) {
 }
 
 function swapTurns() {
-    if(userShape != currentTurn) {
-        cellElements.forEach(cell => {
-            cell.removeEventListener('click', handleClick)
+    let currentTurnText
+    cellElements.forEach(cell => {
+        cell.removeEventListener('click', handleClick)
+
+        if(userShape === "spec"){
+            currentTurnText = "You are spectating"
+        } else if(userShape != currentTurn) {
             cell.classList.add('none')
-        })
-        if(userShape === 'spec'){
-            turnMessage.innerText = "You are spectating"
-        }else {
-            turnMessage.innerText = "It's Your Opponent's Turn"
-        }
-    } else {
-        cellElements.forEach(cell => {
+            currentTurnText = "It's Your Opponent's Turn"
+        } else {
             cell.classList.remove('none')
-            cell.removeEventListener('click', handleClick)
             cell.addEventListener('click', handleClick, {once: true})
-        })
-        if(userShape === 'spec'){
-            turnMessage.innerText = "You are spectating"
-        }else {
-            turnMessage.innerText = "It's Your Turn!"
+            currentTurnText = "It's Your Turn!"
         }
-    }
+    })
+
+    turnMessage.innerText = currentTurnText
 }
 
 function requestRematch() {
     socket.emit('request-restart', gameName)
-}
-
-function isDraw() {
-    return [...cellElements].every(cell => {
-        return cell.classList.contains(X_CLASS) || cell.classList.contains(CIRCLE_CLASS)
-    })
 }
 
 function placeMark(checkedTiles, cell, currentClass){
@@ -247,68 +208,36 @@ function placeMark(checkedTiles, cell, currentClass){
     }
     cell.classList.add(currentClass)
 
-    let css
-    if (userShape === 'circle' || userShape == 'spec') {
-        css = `                
-            .cell.x::before,
-            .cell.x::after {
-                background-color: rgb(156, 31, 31);
-            }
-        
-            .cell.circle::before{
-                background-color: #187bcd;
-                float: right;
-            }
-        `,
-        head = document.head || document.getElementsByTagName('head')[0],
-        style = document.createElement('style');
- 
-    }else if (userShape === 'x') {
-        css = `                
-            .cell.x::before,
-            .cell.x::after {
-                background-color: #187bcd;
-            }
-            
-            .cell.circle::before{
-                background-color: rgb(156, 31, 31);
-                float: left;
-            }
-        `,
-        head = document.head || document.getElementsByTagName('head')[0],
-        style = document.createElement('style');
 
-    }
-    
-    head.appendChild(style);
-    style.type = 'text/css';
-    style.appendChild(document.createTextNode(css));
 }
 
 function getCookie(cname) {
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
+    var name = cname + "="
+    var decodedCookie = decodeURIComponent(document.cookie)
+    var ca = decodedCookie.split(';')
     for(var i = 0; i <ca.length; i++) {
         var c = ca[i];
         while (c.charAt(0) == ' ') {
-        c = c.substring(1);
+        c = c.substring(1)
         }
         if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
+        return c.substring(name.length, c.length)
         }
     }
-    return "";
+    return ""
 }
 
 function appendMessage(origin, message){
     const messageElement = document.createElement('div')
     messageElement.classList.add('chatMessage')
-    const messageTimeStamp = document.createElement('div')
     messageElement.innerText = message
+
+    const messageTimeStamp = document.createElement('div')
     messageTimeStamp.innerText = getCurrentTime()
+
     messageContainer.append(messageElement)
 
+    //Append a class for the message type, self message, player message, game message
     if (origin === "game") {
         messageElement.classList.add('gameMessage')
     } else if (origin === "other") {
@@ -317,15 +246,7 @@ function appendMessage(origin, message){
         messageElement.classList.add('selfMessage')
     }
 
-    console.log('Scroll Height: ' + messageContainer.scrollHeight )
-    console.log('Scroll Top: ' + messageContainer.scrollTop )
-    console.log('Client Height: ' + messageContainer.clientHeight )
-
-    let hiddenChatArea = messageContainer.scrollHeight - messageContainer.clientHeight
-
-    if(messageContainer.scrollHeight > messageContainer.clientHeight) {
-        messageContainer.scrollTop = hiddenChatArea
-    }
+    chatAutoScrollNewMessage()
 }
 
 function getCurrentTime() {
@@ -345,4 +266,115 @@ function convert12to24(hours) {
 
 function convert2digits(minutes) {
     return (minutes < 10) ? `${0}${minutes}` : minutes.toString()
+}
+
+function createGameCard(gameName) {
+    //Add a new game to the list on the homepage
+    const gameElement = document.createElement('div')
+    gameElement.classList.add('game-card')
+
+    const gameTitle = document.createElement('h4')
+    gameTitle.innerText = gameName
+
+    const gameLink = document.createElement('a')
+    gameLink.href = `/${gameName}`
+    gameLink.innerText = 'join'
+
+    gameElement.append(gameTitle)
+    gameElement.append(gameLink)
+    return gameElement
+}
+
+function chatAutoScrollNewMessage() {
+    let hiddenChatArea = messageContainer.scrollHeight - messageContainer.clientHeight
+
+    if(messageContainer.scrollHeight > messageContainer.clientHeight) {
+        messageContainer.scrollTop = hiddenChatArea
+    }
+}
+
+function gameEndMessage(shape = "", win = false) {
+    if(userShape === 'spec') {
+        return restartButton.style.display = 'none'
+    }
+
+    restartButton.removeEventListener('click', requestRematch)
+    restartButton.addEventListener('click', requestRematch)
+
+    winningMessageElement.classList.add('show')
+    turnMessage.classList.add('hide')
+    board.classList.add('hide')
+
+    if(win) { 
+        return `${shape}'s Win!`
+    }
+
+    return 'Its a Draw!'
+}
+
+function fillCheckedTiles(tiles) {
+    tiles.forEach( tile => {
+        if (tile.checked) {
+            let checkedTile = document.getElementById(tile.id)
+            checkedTile.classList.add(tile.shape)
+        }
+    })                                                              
+}
+
+function setShapeColour(){
+    let css
+    if (userShape === 'circle' || userShape == 'spec') {
+        css = `                
+            .cell.x::before,
+            .cell.x::after {
+                background-color: rgb(156, 31, 31);
+            }
+        
+            .cell.circle::before{
+                background-color: #187bcd;
+                float: right;
+            }
+        `,
+        head = document.head || document.getElementsByTagName('head')[0],
+        style = document.createElement('style')
+ 
+    }else if (userShape === 'x') {
+        css = `                
+            .cell.x::before,
+            .cell.x::after {
+                background-color: #187bcd;
+            }
+            
+            .cell.circle::before{
+                background-color: rgb(156, 31, 31);
+                float: left;
+            }
+        `,
+        head = document.head || document.getElementsByTagName('head')[0],
+        style = document.createElement('style')
+    }
+    
+    head.appendChild(style)
+    style.type = 'text/css'
+    style.appendChild(document.createTextNode(css))
+}
+
+function sendChatMessage(e) {
+    const message = messageInput.value
+    e.preventDefault()
+
+    appendMessage('self', `You: ${message}`)
+    messageInput.value = ''
+
+    socket.emit('send-chat-message', {
+        gameName: gameName,
+        message: message
+    })
+}
+
+function createUserNameCookie() {
+    userName = userNameInput.value
+
+    document.cookie = `name=${userName}`
+    promptUserNameContainer.classList.remove('show')
 }

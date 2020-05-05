@@ -71,8 +71,8 @@ io.on('connection', socket => {
             socket.broadcast.to(gameName).emit('other-user-connected', games[gameName].users[socket.id])
 
             //Start game once 2 people are in and the variables are set
-            if (
-                Object.keys(games[gameName].users).length >= 2
+            if (games[gameName].users[socket.id].role !== "spec"
+                && Object.keys(games[gameName].users).length >= 2
                 && games[gameName].roles['circle'].taken === true
                 && games[gameName].roles['x'].taken === true
             ) {
