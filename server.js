@@ -85,6 +85,9 @@ io.on('connection', socket => {
             }
         }
     })
+    socket.on('typing', (gameName) => {
+        socket.to(gameName).broadcast.emit('typing', { name: games[gameName].users[socket.id].name })
+    })
     socket.on('send-chat-message', data => {
         if (games[data.gameName]) {
             socket.to(data.gameName).broadcast.emit('chat-message', {message: data.message, fromUser: games[data.gameName].users[socket.id].name })
@@ -146,8 +149,10 @@ io.on('connection', socket => {
             if(games[gameName]){
                 let userShape = games[gameName].users[socket.id].role
                 
-                games[gameName].active = false
-                games[gameName].roles[userShape].taken = false
+                if(userShape !== 'spec'){
+                    games[gameName].active = false
+                    games[gameName].roles[userShape].taken = false
+                }
                 
                 socket.broadcast.to(gameName).emit('user-disconnected', games[gameName].users[socket.id])
                 delete games[gameName].users[socket.id]

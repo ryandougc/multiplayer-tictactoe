@@ -353,10 +353,15 @@ header {
     overflow: auto;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 #message-container div {
     margin: 1em 0;
+}
+
+.chatMessage {
+    word-break: break-all;
 }
 
 .otherMessage {
@@ -429,6 +434,10 @@ header {
     justify-items: center;
     align-items: center;
     grid-template-columns: repeat(3, auto);
+}
+
+.hide {
+    display: none;
 }
 
 .cell.none {
@@ -530,11 +539,7 @@ header {
 .winning-message {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.9);
+    height: 100%;
     justify-content: center;
     align-items: center;
     flex-direction: column;

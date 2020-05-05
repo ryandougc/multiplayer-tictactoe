@@ -14,6 +14,7 @@ const WINNING_COMBINATIONS = [
 let currentTurn
 let userShape
 let name = getCookie('name')
+let typingTimer
 
 const nameInput = document.getElementById('inputName')
 const nameInputSubmit = document.getElementById('nameInputSubmit')
@@ -48,6 +49,10 @@ if (chat != null) {
 }
 
 if(messageForm != null){
+    messageInput.addEventListener('keypress', () => {
+        socket.emit('typing', gameName)
+    })
+
     messageForm.addEventListener('submit', e => {
         e.preventDefault()
         const message = messageInput.value
@@ -87,6 +92,15 @@ socket.on('other-user-connected', user => {
     appendMessage('game', `${user.name} connected`)
 })
 
+socket.on('typing', data => {
+    clearTimeout(typingTimer)
+    feedback.innerText = `${data.name} is typing...`
+
+    typingTimer = setTimeout(() => {
+        feedback.innerText = ""
+    }, 5000)
+})
+
 socket.on('chat-message', data => {
     appendMessage('other', `${data.fromUser}: ${data.message}`)
 })
@@ -119,6 +133,8 @@ socket.on('win', shape => {
         restartButton.removeEventListener('click', requestRematch)
         restartButton.addEventListener('click', requestRematch)
     }
+    turnMessage.classList.add('hide')
+    board.classList.add('hide')
     winningMessageTextElement.innerText = `${shape}'s Win!`
     winningMessageElement.classList.add('show')
 
@@ -132,6 +148,8 @@ socket.on('draw', () => {
         restartButton.removeEventListener('click', requestRematch)
         restartButton.addEventListener('click', requestRematch)
     }
+    turnMessage.classList.add('hide')
+    board.classList.add('hide')
     winningMessageTextElement.innerText = `Its a Draw!`
     winningMessageElement.classList.add('show')
 
@@ -160,9 +178,16 @@ socket.on('other-user-reconnected', data => {
 
 socket.on('user-disconnected', user => {
     appendMessage('game', `${user.name} has left!`)
+    cellElements.forEach(cell => {
+        cell.removeEventListener('click', handleClick)
+        cell.classList.add('none')
+    })
+    turnMessage.innerText = "Waiting for opponent..."
 })
 
 function startGame() {
+    turnMessage.classList.remove('hide')
+    board.classList.remove('hide')
     winningMessageElement.classList.remove('show')
     cellElements.forEach(cell => {
         cell.classList.remove(X_CLASS)
@@ -278,6 +303,7 @@ function getCookie(cname) {
 
 function appendMessage(origin, message){
     const messageElement = document.createElement('div')
+    messageElement.classList.add('chatMessage')
     const messageTimeStamp = document.createElement('div')
     messageElement.innerText = message
     messageTimeStamp.innerText = getCurrentTime()
@@ -291,8 +317,14 @@ function appendMessage(origin, message){
         messageElement.classList.add('selfMessage')
     }
 
-    if (messageContainer.scrollTop + messageContainer.clientHeight === messageContainer.scrollHeight) {
-        messageContainer.scrollTop = messageContainer.scrollHeight;
+    console.log('Scroll Height: ' + messageContainer.scrollHeight )
+    console.log('Scroll Top: ' + messageContainer.scrollTop )
+    console.log('Client Height: ' + messageContainer.clientHeight )
+
+    let hiddenChatArea = messageContainer.scrollHeight - messageContainer.clientHeight
+
+    if(messageContainer.scrollHeight > messageContainer.clientHeight) {
+        messageContainer.scrollTop = hiddenChatArea
     }
 }
 

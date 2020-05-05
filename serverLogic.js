@@ -68,7 +68,7 @@ exports.checkState = (game) => {
         if(game.tiles[tileId].checked === false) return undefined
     }
 
-    return true
+    return false
 }
 
 exports.getUserGames = (games, socketId) => {
