@@ -6,17 +6,30 @@ let userShape
 let currentTurn
 let userName                        = getCookie('name')
 let typingTimer
+let score = {
+    'x': {
+        wins: 0
+    },
+    'circle': {
+        wins: 0
+    }
+}
+let xScore = 0
+let circleScore = 0
 
 // name elements
 const promptUserNameContainer       = document.querySelector('.prompt-user-name-container')
 const userNameInput                 = document.querySelector('.user-name-input')
 const userNameInputSubmit           = document.querySelector('.user-name-input-submit')
 // index page elements
-const joinGameList                 = document.getElementById('join-game-list')
+const joinGameList                  = document.getElementById('join-game-list')
 // game elements
 const board                         = document.getElementById('board')
 const cellElements                  = document.querySelectorAll('[data-cell]')
 const turnMessage                   = document.getElementById('turnMessage')
+const winCounterContainer           = document.getElementById('win-counter-container')
+const xScoreText                    = document.getElementById('x-score')
+const circleScoreText               = document.getElementById('circle-score')
 // win/draw window
 const winningMessageElement         = document.getElementById('winningMessage')
 const winningMessageTextElement     = document.querySelector('[data-winning-message-text]')
@@ -63,8 +76,8 @@ socket.on('game-created', gameName => {
     joinGameList.append(gameCard)
 })
 
-socket.on('user-connected', user => {
-    userShape = user.role
+socket.on('user-connected', (users, userId) => {
+    userShape = users[userId].role
 
     if(userShape == "spec"){
         turnMessage.innerText = "You are spectating"
@@ -74,6 +87,7 @@ socket.on('user-connected', user => {
 
     appendMessage('game', 'You connected')
     setShapeColour()
+    setGameScore(users)
 })
 
 socket.on('other-user-connected', user => {
@@ -117,8 +131,10 @@ socket.on('place-mark', data => {
     placeMark(checkedTiles, cell, data.pastTurn)
 })
 
-socket.on('win', shape => {
+socket.on('win', (shape, users) => {
     winningMessageTextElement.innerText = gameEndMessage(shape, true)
+
+    setGameScore(users)
 })
 
 socket.on('draw', () => {
@@ -157,6 +173,7 @@ function startGame() {
     winningMessageElement.classList.remove('show')
     turnMessage.classList.remove('hide')
     board.classList.remove('hide')
+    winCounterContainer.classList.remove('hide')
 
     //Make sure game board is empty
     cellElements.forEach(cell => {
@@ -166,6 +183,8 @@ function startGame() {
 
     //Assign the hover for the user's shape
     board.classList.add(userShape)
+
+    setGameScore()
 }
 
 function handleClick(e) {
@@ -304,6 +323,7 @@ function gameEndMessage(shape = "", win = false) {
     winningMessageElement.classList.add('show')
     turnMessage.classList.add('hide')
     board.classList.add('hide')
+    winCounterContainer.classList.add('hide')
 
     if(win) { 
         return `${shape}'s Win!`
@@ -377,4 +397,20 @@ function createUserNameCookie() {
 
     document.cookie = `name=${userName}`
     promptUserNameContainer.classList.remove('show')
+}
+
+function setGameScore(users = null){
+    
+    if(users) {
+        for(let userId in users){
+            let userRole = users[userId].role
+            if(userRole === X_CLASS || userRole === CIRCLE_CLASS) {
+                console.log(users[userId].wins + " - " + score[userRole].wins)
+                score[userRole].wins = users[userId].wins
+            }
+        }
+    }
+
+    xScoreText.innerText = `X's: ${score[X_CLASS].wins}`
+    circleScoreText.innerText = `O's: ${score[CIRCLE_CLASS].wins}`
 }

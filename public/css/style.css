@@ -325,6 +325,14 @@ header {
     justify-content: space-between;
 }
 
+#win-counter-container {
+    margin-top: 3rem;
+    width: 25%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 /*  Chat Box    */
 .chat {
     width: 30%;
@@ -436,7 +444,7 @@ header {
 }
 
 .hide {
-    display: none;
+    display: none !important;
 }
 
 .cell.none {

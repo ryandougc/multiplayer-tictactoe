@@ -64,10 +64,11 @@ io.on('connection', socket => {
             games[gameName].users[socket.id] = { 
                 name: userName,
                 role: userRole,
-                restart: false
+                restart: false,
+                wins: 0
             }
 
-            socket.emit('user-connected', games[gameName].users[socket.id])
+            socket.emit('user-connected', games[gameName].users, socket.id)
             socket.broadcast.to(gameName).emit('other-user-connected', games[gameName].users[socket.id])
 
             //Start game once 2 people are in and the variables are set
@@ -104,7 +105,8 @@ io.on('connection', socket => {
 
             if (state === true) {
                 games[data.gameName].active = false
-                io.sockets.to(data.gameName).emit('win', data.currentTurn)
+                games[data.gameName].users[socket.id].wins++
+                io.sockets.to(data.gameName).emit('win', data.currentTurn, games[data.gameName].users)
             } else if (state === false) {
                 games[data.gameName].active = false
                 io.sockets.to(data.gameName).emit('draw')
