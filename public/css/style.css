@@ -32,7 +32,7 @@ body {
 }
 body.dark {
     --background-color: #333;
-    --accent-color: #187bcd;
+    --accent-color: #187bcd !important;
     --secondary-color: white;
     --text-color: white;
 
@@ -43,6 +43,7 @@ body.dark {
     --tictactoe-x-color: #187bcd;
     --tictactoe-circle-color: rgb(156, 31, 31);
 }
+
 
 /*  Components  */
 
@@ -171,7 +172,7 @@ h3 {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: white;
+    background-color: var(--background-color);
     justify-content: center;
     align-items: center;
     flex-direction: column;
@@ -582,3 +583,9 @@ h3 {
         margin-top: 12rem;
     }
 }
+
+@media (prefers-color-scheme: dark) {
+    .button {
+        background-color: #187bcd !important;
+    }
+  }
