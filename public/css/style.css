@@ -32,7 +32,7 @@ body {
 }
 body.dark {
     --background-color: #333;
-    --accent-color: #187bcd !important;
+    --accent-color: #187bcd ;
     --secondary-color: white;
     --text-color: white;
 
@@ -61,7 +61,7 @@ h3 {
 
 /* Input Bar */
 .button {
-    background-color: var(--accent-color);
+    background-color: var(--accent-color) !important;
     color: var(--button-text-color);
     cursor: pointer;
     padding: .5em 1em;
@@ -131,7 +131,7 @@ h3 {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: #ccc !important;
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 34px;
@@ -151,7 +151,7 @@ h3 {
 }
 
 .toggle-switch input:checked + .slider {
-    background-color: var(--accent-color);
+    background-color: var(--accent-color) !important;
 }
 
 .toggle-switch input:focus + .slider {
@@ -583,9 +583,3 @@ h3 {
         margin-top: 12rem;
     }
 }
-
-@media (prefers-color-scheme: dark) {
-    .button {
-        background-color: #187bcd !important;
-    }
-  }
