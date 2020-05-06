@@ -19,6 +19,11 @@ body {
     --button-text-color: white;
     --input-background-color: var(--secondary-color);
 
+    --slider-color: #fff;
+    --slider-background-color: #ccc;
+    --sun-color: rgb(224, 187, 22);
+    --moon-color: rgb(251, 253, 255);
+
     --tictactoe-line-color: #333;
     --tictactoe-x-color: #187bcd;
     --tictactoe-circle-color: rgb(114, 114, 114);
@@ -38,6 +43,9 @@ body.dark {
 
     --button-text-color: white;
     --input-background-color: white;
+
+    --slider-color: #ccc;;
+    --slider-background-color: rgb(85, 85, 85);
 
     --tictactoe-line-color: white;
     --tictactoe-x-color: #187bcd;
@@ -105,8 +113,10 @@ h3 {
 .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 38px;
-    height: 20px;
+    top: 0;
+    right: 0;
+    width: 52px;
+    height: 28px;
     line-height: 13px;
     padding-top: .5em;
     padding-bottom: .5em;
@@ -131,37 +141,54 @@ h3 {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc !important;
+    background-color: var(--slider-background-color) !important;
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 34px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .toggle-switch .slider:before {
     position: absolute;
     content: "";
     border-radius: 50%;
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
+    height: 22px;
+    width: 22px;
+    line-height: 28px;
+    left: 3px;
+
+    background-color: var(--slider-color);
     -webkit-transition: .4s;
     transition: .4s;
 }
 
 .toggle-switch input:checked + .slider {
-    background-color: var(--accent-color) !important;
+    background-color: var(--slider-background-color) !important;
 }
 
 .toggle-switch input:focus + .slider {
-    box-shadow: 0 0 1px var(--accent-color);
+    box-shadow: 0 0 1px var(--slider-background-color);
+}
+input:checked + .slider:before {
+    -webkit-transform: translateX(24px);
+    -ms-transform: translateX(24px);
+    transform: translateX(24px);
 }
 
-    input:checked + .slider:before {
-    -webkit-transform: translateX(16px);
-    -ms-transform: translateX(16px);
-    transform: translateX(16px);
+.toggle-switch .sun {
+    fill: var(--sun-color);
+    height: 22px;
+    width: 22px;
+    margin-left: 4px;
+}
+
+.toggle-switch .moon {
+    height: 20px;
+    width: 20px;
+    fill: var(--moon-color);
+    margin-right: 4px;
 }
 
 /*  Home Page   */
