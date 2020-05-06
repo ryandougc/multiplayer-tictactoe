@@ -58,7 +58,6 @@ h3 {
     text-align: center;
 }
 
-/* Input Bar */
 .button {
     background-color: var(--accent-color);
     color: var(--button-text-color);
@@ -72,9 +71,12 @@ h3 {
 
 .input-bar {
     display: flex;
+    flex-direction: row;
     justify-content: center;
+    padding: 3rem;
 }
 .input-bar input[type=text]{
+    padding: 1em;
     height: 35px;
     color: #333;
     border: transparent;
@@ -83,12 +85,11 @@ h3 {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     transition: var(--darkMode-transition-speed);
-    padding: 1em;
 }
 
 .input-bar button {
     height: 35px;
-    min-width: 100px;
+    min-width: 75px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     transition: var(--darkMode-transition-speed);
@@ -163,105 +164,16 @@ h3 {
     transform: translateX(16px);
 }
 
-/*  Home Page   */
-.prompt-user-name-container {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: white;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: var(--text-color);
-    z-index: 3;
-    text-align: center;
-}
-
-.prompt-user-name-container.show {
-    display: flex;
-}
-
-.prompt-user-name-container p {
-    font-size: 1.5em;
-    margin-bottom: 2rem;
-}
-
-.prompt-user-name-container .user-name-input-submit {
-    height: 35px;
-    width: 75px;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-#homepage-header {
+/* Page setup */
+.container {
+    width: 100vw;
+    height: 100vh;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding: 2.5rem;
-    margin-bottom: 3em;
 }
 
-#homepage-header h1{
-    font-size: 3.25em;
-}
-
-.game-container {
-    display: none;
-}
-
-#create-game h3,
-#join-game h3 {
-    margin-bottom: .5em;
-}
-
-#join-game {
-    margin-top: 5em;
-}
-
-.game-card {
-    height: 60px;
-    width: 352px;
-    margin: 0 auto;
-    background-color: #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-}
-
-.game-card a,
-.game-card h4 {
-    color: #333;
-}
-
-.game-card:first-child {
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-}
-
-.game-card:last-child {
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-}
-
-.game-card a {
-    text-decoration: underline;
-    font-size: 1.1em;
-}
-.game-card a:hover {
-    text-decoration: underline;
-    color: var(--accent-color)
-}
-
-/* Game Page */
-.container {
-    width: 100vw;
-}
-
-.container header {
+header {
     top: 0;
     left: 0;
     min-height: 45px;
@@ -274,38 +186,173 @@ h3 {
     align-items: center;
 }
 
-#turnMessage {
-    text-align: center;
-    margin: 3rem;
-    margin-top: 6rem;
+.game-container {
+    padding-right: 8rem;
 }
 
-.game {
+/*  Home Page Setup     */
+.prompt-user-name-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: var(--text-color);
+    font-size: 5rem;
+    z-index: 3;
+}
+
+.prompt-user-name-container.show {
+    display: flex;
+}
+
+.prompt-user-name-container p {
+    font-size: .35em;
+}
+
+.prompt-user-name-container .user-name-input-submit {
+    height: 35px;
+    width: 75px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+#homepage-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3rem;
+    margin-bottom: 10rem;
+}
+
+#homepage-header .title {
+    margin-top: 10rem;
+    margin-left: 10rem;
+}
+
+#homepage-header .game-container{
+    margin-top: 10rem;
+    margin-right: 10rem;
+}
+
+#homepage-header h1 {
+    font-size: 5em;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
 }
 
-#win-counter-container {
+#homepage-header .toggle-switch {
+    align-self: flex-start;
+}
+
+#game-selection {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: flex-start;
+    margin-bottom: 100px;
+    padding: 5rem 0;
+}
+
+#game-selection .join-game .game-card {
+    height: 60px;
+    min-width: 350px;
+    background-color: #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+#game-selection .join-game .game-card a,
+#game-selection .join-game .game-card h4 {
+    color: #333;
+}
+
+
+#game-selection .join-game .game-card:first-child {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
     margin-top: 3rem;
-    width: 75%;
+}
+
+#game-selection .join-game .game-card:last-child {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+#game-selection .join-game .game-card > * {
+    padding: 1rem;
+}
+
+#game-selection .join-game .game-card a {
+    text-decoration: underline;
+    font-size: 1.1em;
+}
+#game-selection .join-game .game-card a:hover {
+    text-decoration: underline;
+    color: var(--accent-color)
+}
+
+/* #game-example {
+    -webkit-perspective: 300px;
+    -moz-perspective: 300px;
+      -o-perspective: 300px;
+         perspective: 300px;
+}
+
+#board-example {
+    position: absolute;
+    overflow: hidden;
+    transform: translateY(21px) translate(0px, 33%) rotate3d(1, 0, 0, 90deg);
+} */
+
+/*  Game Page Setup     */
+.left {
+    width: 70%;
+}
+.content {
+    padding: 2rem;
+    height: 90%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
 }
 
-/*  Chat    */
+#win-counter-container {
+    margin-top: 3rem;
+    width: 25%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+/*  Chat Box    */
 .chat {
-    width: 100%;
-    height: 650px;
+    width: 30%;
+    min-width: 350px;
     padding: 1em;
+    border-left: 1px solid var(--secondary-color);
     padding-bottom: 2em;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     transition: var(--darkMode-transition-speed);
-    margin-top: 3rem;
+}
+
+.chat input[type=text] {
+    padding: 1em;
+    color: var(--text-color);
+    border: transparent;
+    border-radius: .25em;
+    background-color: var(--input-background-color);
+    transition: var(--darkMode-transition-speed);
 }
 
 #message-container {
@@ -350,6 +397,40 @@ h3 {
 
 #send-container {
     width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#message-input, #send-button {
+    height: 35px;
+}
+
+#message-input {
+    width: 80%;
+    word-wrap: normal;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    color: #333;
+}
+
+#send-button {
+    width: 75px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Game Container */
+.game {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#turnMessage {
+    text-align: center;
+    margin: 5rem;
+    margin-top: 10rem;
 }
 
 /*  Tic-tac-toe Game */
@@ -464,121 +545,29 @@ h3 {
 
 .winning-message {
     display: none;
-    height: 85vh;
-    text-align: center;
+    position: fixed;
+    height: 100%;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     color: var(--text-color);
-    font-size: 3em;
+    font-size: 5rem;
 }
 
 .winning-message.show {
     display: flex;
 }
 
-#winner-text {
-    margin-bottom: 2rem;
-}
-
 .winning-message button {
-    transform: scale(1.25);
-    /* font-size: 1.25rem; */
-
+    font-size: 3rem;
+    background-color: white;
+    border: 1px solid black;
+    padding: .25em .5em;
+    cursor: pointer;
 }
 
 .winning-message button:hover {
     background-color: white;
     color: white;
     border-color: white;
-}
-
-@media (min-width: 576px) {
-    /*  Game Page    */
-    #win-counter-container {
-        width: 50%;
-    }
-}
-@media (min-width: 768px) {
-    /*  Index Page   */
-    #homepage-header {
-        padding: 5rem;
-    }
-
-    #game-selection {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-    }
-
-    #join-game {
-        margin-top: 0;
-    }
-
-    .game-container {
-        display: inherit;
-    }
-    
-    /*   Game Page   */
-    #win-counter-container {
-        width: 35%;
-    }
-
-    .container {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        flex-direction: row;
-    }
-
-    .left {
-        width: 50%;
-    }
-
-    .chat {
-        width: 50%;
-        height: unset;
-        border-left: 1px solid var(--secondary-color);
-        margin-top: unset;
-    }
-}
-@media (min-width: 992px) {
-
-
-}
-@media (min-width: 1200px) {
-    /*  Home Page Setup     */
-    #homepage-header{
-        padding: 3rem;
-    }
-
-    #homepage-header .title {
-        margin-top: 10rem;
-        margin-left: 10rem;
-    }
-
-    #homepage-header .game-container{
-        margin-top: 10rem;
-        margin-right: 10rem;
-    }
-
-    #homepage-header h1 {
-        font-size: 5em;
-    }
-
-    #homepage-header .toggle-switch {
-        align-self: flex-start;
-    }
-    
-    /* Game Page */
-    .left {
-        width: 70%;
-    }
-
-    .chat {
-        width: 30%;
-    }
-    #turnMessage {
-        margin-top: 12rem;
-    }
 }

@@ -20,9 +20,9 @@
 <body>
     <div class="container">
         <div class="prompt-user-name-container">
-            <p id="name-input-label">Please enter your name here</p>
+            <p id="name-input-label">Please enter your name</p>
             <form class="input-bar">
-                <input type="text" name="inputName" class="user-name-input" autocomplete="off" maxlength="50">
+                <input type="text" name="inputName" class="user-name-input" autocomplete="off" placeholder="Ryan" maxlength="50">
                 <button type="submit" class="button user-name-input-submit">Enter</button>
             </form>
         </div>
@@ -57,15 +57,15 @@
                     <p id="circle-score"></p>
                 </div>
                 <div id="winningMessage" class="winning-message">
-                    <div data-winning-message-text></div>
-                    <button id="restartButton">Restart</button>
+                    <div id="winner-text" data-winning-message-text></div>
+                    <button id="restartButton" class="button">Restart</button>
                 </div>
             </div>
         </div>
         <div class="chat">
             <div id="message-container"></div>
             <div id="typing-feedback"></div>
-            <form id="send-container">
+            <form id="send-container" class="input-bar">
                 <input type="text" id="message-input" autocomplete="off" maxlength="250">
                 <button type="submit" id="send-button" class="button">Send</button>
             </form>
