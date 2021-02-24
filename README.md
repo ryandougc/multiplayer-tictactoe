@@ -1,9 +1,6 @@
 # Multiplayer Oneline Tic-Tac-Toe
 This is a multiplayer online version of tic-tac-toe that I built during my first week of the #100daysofcode challenge. The rules are the same as regular tic-tac-toe. 
 
-## Live Version
-You can play it live at https://tictactoe.ryancarr.ca
-
 ## Features
 After you enter your name upon loading the website for the first time, you can either create a game or join an existing game if there is one. Once 2 people are in the game, the game will start. 
 
