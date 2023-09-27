@@ -1,4 +1,4 @@
-# Multiplayer Oneline Tic-Tac-Toe
+# Multiplayer Online Tic-Tac-Toe
 This is a multiplayer online version of tic-tac-toe that I built during my first week of the #100daysofcode challenge. The rules are the same as regular tic-tac-toe. You can play online with your friends through your browser. A live text chat is started in each game so you can chat with your opponent. 
 
 ## Skills Used
